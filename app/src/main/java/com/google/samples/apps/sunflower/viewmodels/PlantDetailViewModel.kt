@@ -16,13 +16,17 @@
 
 package com.google.samples.apps.sunflower.viewmodels
 
-import android.arch.lifecycle.LiveData
-import android.arch.lifecycle.Transformations
-import android.arch.lifecycle.ViewModel
+import androidx.lifecycle.LiveData
+import androidx.lifecycle.Transformations
+import androidx.lifecycle.ViewModel
+import androidx.lifecycle.viewModelScope
 import com.google.samples.apps.sunflower.PlantDetailFragment
 import com.google.samples.apps.sunflower.data.GardenPlantingRepository
 import com.google.samples.apps.sunflower.data.Plant
 import com.google.samples.apps.sunflower.data.PlantRepository
+import kotlinx.coroutines.ExperimentalCoroutinesApi
+import kotlinx.coroutines.cancel
+import kotlinx.coroutines.launch
 
 /**
  * The ViewModel used in [PlantDetailFragment].
@@ -35,6 +39,15 @@ class PlantDetailViewModel(
 
     val isPlanted: LiveData<Boolean>
     val plant: LiveData<Plant>
+
+    /**
+     * Cancel all coroutines when the ViewModel is cleared.
+     */
+    @ExperimentalCoroutinesApi
+    override fun onCleared() {
+        super.onCleared()
+        viewModelScope.cancel()
+    }
 
     init {
 
@@ -49,6 +62,8 @@ class PlantDetailViewModel(
     }
 
     fun addPlantToGarden() {
-        gardenPlantingRepository.createGardenPlanting(plantId)
+        viewModelScope.launch {
+            gardenPlantingRepository.createGardenPlanting(plantId)
+        }
     }
 }
